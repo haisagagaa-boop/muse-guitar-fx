@@ -1,0 +1,42 @@
+# Windows build (CI)
+#
+# Menjalankan build host di Windows: shared core + smoke tests + JUCE smoke test.
+# Berjalan di GitHub Actions (windows-latest, Visual Studio 2022).
+#
+# PENTING — CI ini BELUM PERNAH DIJALANKAN (status B2):
+# repository ini masih lokal (belum ada remote GitHub, belum dipush), sehingga
+# workflow ini belum bisa berjalan. Menjalankan CI membutuhkan keputusan user:
+# (1) buat repository GitHub, (2) visibilitas publik vs privat (berpengaruh ke
+# biaya: repo publik gratis; repo privat memakai menit gratis terbatas),
+# (3) push branch main. Jangan klaim "CI Windows lolos" sebelum run pertama
+# benar-benar terlihat hijau di GitHub.
+#
+# Pinning: actions/checkout dipin ke commit SHA penuh (bukan tag bergerak),
+# supaya build dapat direproduksi.
+
+name: Windows build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      # actions/checkout v4 — commit 11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          submodules: recursive
+
+      - name: Configure (Visual Studio 2022, x64, Release)
+        run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build (maks. 2 job paralel, mengikuti batas RAM VM)
+        run: cmake --build build --config Release --parallel 2
+
+      - name: Test (CTest)
+        run: ctest --test-dir build -C Release --output-on-failure

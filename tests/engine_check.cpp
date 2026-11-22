@@ -29,6 +29,10 @@
 #include "muse_dsp/gain_processor.h"
 #include "muse_dsp/mock_audio_device.h"
 #include "muse_dsp/smoothed_parameter.h"
+#include "test_processors.h"
+
+using test::DcOffsetProcessor;
+using test::OrderRecorderProcessor;
 
 namespace {
 
@@ -63,41 +67,6 @@ void fillBuffer(muse_dsp::AudioBuffer& buffer, float value) {
         }
     }
 }
-
-// Prosesor khusus tes: mencatat ID tiap kali process() dipanggil.
-class OrderRecorderProcessor : public muse_dsp::AudioProcessor {
-public:
-    OrderRecorderProcessor(int id, std::vector<int>* log)
-        : id_(id), log_(log) {}
-    void prepare(const muse_dsp::ProcessSpec&) override {}
-    void process(muse_dsp::AudioBuffer&) override { log_->push_back(id_); }
-    void reset() override {}
-    const char* getName() const override { return "OrderRecorder"; }
-
-private:
-    int id_;
-    std::vector<int>* log_;
-};
-
-// Prosesor khusus tes: menambah offset DC ke semua sampel.
-class DcOffsetProcessor : public muse_dsp::AudioProcessor {
-public:
-    explicit DcOffsetProcessor(float offset) : offset_(offset) {}
-    void prepare(const muse_dsp::ProcessSpec&) override {}
-    void process(muse_dsp::AudioBuffer& buffer) override {
-        for (int channel = 0; channel < buffer.getNumChannels(); ++channel) {
-            float* data = buffer.getWritePointer(channel);
-            for (int sample = 0; sample < buffer.getNumSamples(); ++sample) {
-                data[sample] += offset_;
-            }
-        }
-    }
-    void reset() override {}
-    const char* getName() const override { return "DcOffset"; }
-
-private:
-    float offset_;
-};
 
 void testChainOrderCallSequence() {
     std::printf("1. Urutan chain (urutan pemanggilan)...\n");

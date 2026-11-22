@@ -52,6 +52,18 @@ target_link_libraries(effect_chain_tests PRIVATE muse_dsp catch2_amalgamated)
 
 add_test(NAME effect_chain_tests COMMAND effect_chain_tests)
 
+# Unit test formal Dynamics (Phase 2.1, Catch2): Noise Gate +
+# Compressor — atenuasi, gain reduction, attack/release, soft knee,
+# pumping, ukuran blok, perubahan parameter, ekstrem, reset,
+# thread-safety dengan MockAudioDevice.
+add_executable(dynamics_tests
+    dynamics_tests.cpp
+)
+
+target_link_libraries(dynamics_tests PRIVATE muse_dsp catch2_amalgamated)
+
+add_test(NAME dynamics_tests COMMAND dynamics_tests)
+
 # Offline rendering test (B4): render 1 detik sine lewat EffectChain tanpa
 # thread real-time, tulis WAV 16-bit PCM, verifikasi RMS/peak + header WAV.
 add_executable(offline_render

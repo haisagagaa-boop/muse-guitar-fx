@@ -64,6 +64,18 @@ target_link_libraries(dynamics_tests PRIVATE muse_dsp catch2_amalgamated)
 
 add_test(NAME dynamics_tests COMMAND dynamics_tests)
 
+# Unit test formal Drive (Phase 2.2, Catch2): Overdrive + Distortion —
+# THD vs drive, spektrum harmonik (genap vs ganjil), aliasing dengan
+# oversampling ON vs OFF, tone, ukuran blok, perubahan parameter,
+# ekstrem, reset, thread-safety dengan MockAudioDevice.
+add_executable(drive_tests
+    drive_tests.cpp
+)
+
+target_link_libraries(drive_tests PRIVATE muse_dsp catch2_amalgamated)
+
+add_test(NAME drive_tests COMMAND drive_tests)
+
 # Offline rendering test (B4): render 1 detik sine lewat EffectChain tanpa
 # thread real-time, tulis WAV 16-bit PCM, verifikasi RMS/peak + header WAV.
 add_executable(offline_render

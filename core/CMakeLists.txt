@@ -14,6 +14,9 @@ add_library(muse_dsp STATIC
     src/mock_audio_device.cpp
     src/noise_gate_processor.cpp
     src/compressor_processor.cpp
+    src/drive_processor.cpp
+    src/overdrive_processor.cpp
+    src/distortion_processor.cpp
 )
 
 target_include_directories(muse_dsp PUBLIC

@@ -1,4 +1,4 @@
-# MUSE GUITAR FX — Guitar Multi-Effects Processor (Android & Windows)
+# Guitar Multi-Effects Processor (Android & Windows)
 
 > **Status: Phase 0 selesai (21 November 2026).**
 > Proyek greenfield — belum ada kode, belum ada dependency yang diunduh,

@@ -8,11 +8,19 @@
 
 add_library(muse_dsp STATIC
     src/muse_dsp.cpp
+    src/audio_buffer.cpp
+    src/gain_processor.cpp
+    src/effect_chain.cpp
+    src/mock_audio_device.cpp
 )
 
 target_include_directories(muse_dsp PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+
+# MockAudioDevice memakai std::thread — butuh Threads (pthread di Linux).
+find_package(Threads REQUIRED)
+target_link_libraries(muse_dsp PUBLIC Threads::Threads)
 
 # Peringatan sebagai error untuk kode core baru (menjaga kualitas sejak awal).
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")

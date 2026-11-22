@@ -14,13 +14,13 @@ int main() {
         std::printf("FAIL: version string kosong\n");
         return 1;
     }
-    if (muse_dsp::kVersionMajor != 0 || muse_dsp::kVersionMinor != 1 ||
+    if (muse_dsp::kVersionMajor != 0 || muse_dsp::kVersionMinor != 2 ||
         muse_dsp::kVersionPatch != 0) {
-        std::printf("FAIL: versi core bukan 0.1.0\n");
+        std::printf("FAIL: versi core bukan 0.2.0\n");
         return 1;
     }
-    if (std::strcmp(version, "0.1.0-b2") != 0) {
-        std::printf("FAIL: version string bukan 0.1.0-b2\n");
+    if (std::strcmp(version, "0.2.0-b3") != 0) {
+        std::printf("FAIL: version string bukan 0.2.0-b3\n");
         return 1;
     }
 

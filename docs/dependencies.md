@@ -34,7 +34,7 @@ build yang didokumentasikan JUCE sendiri (`docs/Linux Dependencies.md`):
 | libxrender-dev | 1:0.9.10 | X11 Render (juce_gui_basics) |
 | libxcomposite-dev | 1:0.4.5 | X11 Composite (juce_gui_basics) |
 | libxfixes-dev | 1:6.0.0 | X11 Fixes (juce_gui_basics) |
-| libfreetype6-dev | 2.13.2 | Font rendering (juce_graphics) |
+| libfreetype-dev | 2.13.2+dfsg-1ubuntu0.2 | Font rendering (juce_graphics) |
 | libfontconfig1-dev | 2.15.0 | Font config (juce_graphics) |
 | libcurl4-openssl-dev | 8.5.0 | libcurl (juce_core, bila JUCE_USE_CURL=1 — di B2 tidak diaktifkan) |
 
@@ -43,6 +43,25 @@ daftar paket; dihentikan setelah ~10 menit) — diganti update minimal (hanya
 suite `noble` + `noble-updates`, komponen `main` + `universe`, tanpa
 Translation) lewat sources file sementara di `~/workspace/.cache/apt-minimal/`;
 konfigurasi apt sistem tidak diubah.
+
+**Koreksi nama paket (B3):** nama paket FreeType yang benar adalah
+`libfreetype-dev` (2.13.2+dfsg-1ubuntu0.2); `libfreetype6-dev` hanya nama
+transisi dan tidak terinstal. Header yang dipakai JUCE sama
+(`/usr/include/freetype2/freetype/freetype.h`).
+
+**Paket sistem tidak bertahan saat VM di-recycle (temuan B3).** Saat configure
+B3 (2026-11-22), build `juceaide` gagal dengan `fatal error:
+X11/extensions/Xrandr.h: No such file or directory` — hampir semua paket
+`-dev` di atas sudah hilang dari sistem karena VM di-recycle sejak B2
+(21 Nov), sementara direktori home (repo, NDK, cache apt minimal) tetap utuh.
+Perintah instal ulang yang sama dipakai lagi di B3 dan berhasil (semua 9
+paket kembali terinstal; `libxrender-dev` ternyata sudah ada di image dasar):
+`sudo apt-get -o Dir::Etc::sourcelist=$HOME/workspace/.cache/apt-minimal/ubuntu-min.sources -o Dir::Etc::sourceparts=$HOME/workspace/.cache/apt-minimal/empty.d -o Dir::State::lists=$HOME/workspace/.cache/apt-lists-min -o Acquire::Languages=none install -y libxrandr-dev libxinerama-dev libxcursor-dev libxrender-dev libxcomposite-dev libxfixes-dev libfreetype-dev libfontconfig1-dev libcurl4-openssl-dev`
+(ikuti dengan `update` minimal yang sama bila daftar paket sudah usang).
+Implikasi: setiap build JUCE pertama setelah recycle VM harus menginstal
+ulang paket-paket ini dulu — dicatat di sini agar tidak perlu didiagnosis
+ulang. Jangka panjang, opsi yang belum dievaluasi: mengekstrak header
+`.deb` ke dalam home dan mengarahkan CMake ke sana.
 
 ## 2. Dependency yang SENGAJA TIDAK dipakai di Phase 1
 

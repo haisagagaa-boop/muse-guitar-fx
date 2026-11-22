@@ -5,7 +5,7 @@
 namespace muse_dsp {
 
 const char* getVersionString() {
-    return "0.1.0-b2";
+    return "0.2.0-b3";
 }
 
 }  // namespace muse_dsp

@@ -8,6 +8,11 @@
 
 #include <cmath>
 
+#ifdef _WIN32
+#include <windows.h>
+#include <timeapi.h>
+#endif
+
 namespace muse_dsp {
 
 namespace {
@@ -48,6 +53,9 @@ bool MockAudioDevice::start() {
     maxCallbackTimeUs_.store(0.0, std::memory_order_relaxed);
 
     running_.store(true, std::memory_order_relaxed);
+#ifdef _WIN32
+    raiseTimerResolution();
+#endif
     thread_ = std::thread(&MockAudioDevice::run, this);
     return true;
 }
@@ -57,7 +65,27 @@ void MockAudioDevice::stop() {
     if (thread_.joinable()) {
         thread_.join();
     }
+#ifdef _WIN32
+    restoreTimerResolution();
+#endif
 }
+
+#ifdef _WIN32
+void MockAudioDevice::raiseTimerResolution() noexcept {
+    // timeBeginPeriod(1): granularitas timer 1 ms selama device berjalan.
+    // TIMERR_NOERROR (0) = berhasil; bila gagal, pacing tetap berjalan
+    // dengan spin-wait (kurang presisi) — bukan kondisi fatal.
+    timerResolutionRaised_ =
+        (timeBeginPeriod(1) == TIMERR_NOERROR);
+}
+
+void MockAudioDevice::restoreTimerResolution() noexcept {
+    if (timerResolutionRaised_) {
+        timeEndPeriod(1);
+        timerResolutionRaised_ = false;
+    }
+}
+#endif
 
 void MockAudioDevice::run() {
     const double blockDurationUs =

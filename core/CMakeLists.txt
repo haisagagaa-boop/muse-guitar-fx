@@ -22,6 +22,14 @@ target_include_directories(muse_dsp PUBLIC
 find_package(Threads REQUIRED)
 target_link_libraries(muse_dsp PUBLIC Threads::Threads)
 
+# Satu-satunya pengecualian platform di core: MockAudioDevice menaikkan
+# resolusi timer Windows (timeBeginPeriod, winmm) agar pacing blok presisi.
+# Terbatas pada mock (infrastruktur pengujian), bukan DSP — lihat
+# mock_audio_device.h. Di non-Windows tidak ada dependensi tambahan.
+if(WIN32)
+    target_link_libraries(muse_dsp PRIVATE winmm)
+endif()
+
 # Peringatan sebagai error untuk kode core baru (menjaga kualitas sejak awal).
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(muse_dsp PRIVATE -Wall -Wextra)

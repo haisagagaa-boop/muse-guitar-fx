@@ -13,6 +13,15 @@
 // - Perubahan parameter & bypass aman dilakukan dari control thread kapan pun
 //   (atomic). Perubahan struktur chain hanya saat device berhenti.
 // - setInputFrequency()/setInputAmplitude() hanya saat device berhenti.
+//
+// Satu-satunya pengecualian platform di core (lihat core/CMakeLists.txt):
+// di Windows, start() menaikkan resolusi timer sistem ke 1 ms
+// (timeBeginPeriod) dan stop() mengembalikannya. Tanpa ini sleep_until()
+// bangun dengan granularitas timer default ~15,6 ms — lebih kasar dari
+// durasi blok 5,33 ms — sehingga mock tertinggal dari real-time di runner
+// Windows CI (run 45009915655: 63 blok/0,5 dtk; run 45010340962: 66 blok,
+// padahal callback ~26-42 us dan 0 overrun). Ini infrastruktur pengujian,
+// bukan DSP: tidak ada kode audio yang bergantung pada platform.
 
 #pragma once
 
@@ -79,6 +88,14 @@ private:
     void fillInput() noexcept;
     void recordOutput() noexcept;
     void updateMaxCallbackTime(double callbackUs) noexcept;
+#ifdef _WIN32
+    // Naikkan resolusi timer sistem ke 1 ms selama device berjalan (lihat
+    // kontrak di atas); kembalikan di stop(). Tanpa ini pacing blok di
+    // Windows tidak bisa presisi.
+    void raiseTimerResolution() noexcept;
+    void restoreTimerResolution() noexcept;
+    bool timerResolutionRaised_{false};
+#endif
 
     AudioProcessor& processor_;
     double sampleRate_;

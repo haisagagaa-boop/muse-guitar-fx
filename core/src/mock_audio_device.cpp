@@ -87,7 +87,27 @@ void MockAudioDevice::run() {
             // spiral), lanjut dari sekarang.
             nextDeadline = now;
         }
-        std::this_thread::sleep_until(nextDeadline);
+        // Tunggu sampai deadline: tidur sampai 1 ms sebelum deadline, lalu
+        // spin (cek jam rapat-rapat) untuk sisanya. sleep_until saja tidak
+        // cukup presisi: di Windows granularitas timer default ~15,6 ms —
+        // lebih kasar dari durasi blok (5,33 ms @ 256 sampel/48 kHz) —
+        // sehingga tiap iterasi molor, device tertinggal dari real-time, dan
+        // jumlah blok dalam jendela 0,5 detik jatuh jauh di bawah ~93
+        // (di runner Windows CI: 63 blok, padahal callback hanya 42 us dan
+        // 0 overrun — mesin tidak kewalahan, jam tidurnya yang kasar).
+        // Spin dibatasi 1 ms per blok dan terjadi DI ANTARA callback, bukan
+        // di dalam callback, jadi jalur audio tetap bebas alokasi/blokir.
+        // (Temuan CI Windows run 45009915655; perbaikan final verification.)
+        const auto spinStart =
+            nextDeadline - std::chrono::milliseconds(1);
+        if (spinStart > now) {
+            std::this_thread::sleep_until(spinStart);
+        }
+        while (running_.load(std::memory_order_relaxed) &&
+               std::chrono::steady_clock::now() < nextDeadline) {
+            // Spin rapat: yield() di sini justru bisa melepas thread sampai
+            // satu kuantum penjadwal dan mengacaukan deadline.
+        }
     }
 }
 

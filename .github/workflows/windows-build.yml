@@ -1,15 +1,20 @@
 # Windows build (CI)
 #
 # Menjalankan build host di Windows: shared core + smoke tests + JUCE smoke test.
-# Berjalan di GitHub Actions (windows-latest, Visual Studio 2022).
+# Berjalan di GitHub Actions (windows-2022, Visual Studio 2022).
 #
-# PENTING — CI ini BELUM PERNAH DIJALANKAN (status B2):
-# repository ini masih lokal (belum ada remote GitHub, belum dipush), sehingga
-# workflow ini belum bisa berjalan. Menjalankan CI membutuhkan keputusan user:
-# (1) buat repository GitHub, (2) visibilitas publik vs privat (berpengaruh ke
-# biaya: repo publik gratis; repo privat memakai menit gratis terbatas),
-# (3) push branch main. Jangan klaim "CI Windows lolos" sebelum run pertama
-# benar-benar terlihat hijau di GitHub.
+# PINNING RUNNER — windows-2022, BUKAN windows-latest:
+# Run pertama (45009798107, 2026-11-22) GAGAL di langkah Configure karena
+# windows-latest kini mengarah ke image windows-2025-vs2026 (VS 2026, tanpa
+# VS 2022), sehingga generator "Visual Studio 17 2022" tidak menemukan
+# instance Visual Studio sama sekali. Runner dipin ke windows-2022 supaya
+# generator VS 17 2022 selalu tersedia. Jangan kembalikan ke windows-latest
+# tanpa mengganti generator ke "Visual Studio 18 2026" dan memvalidasi
+# ulang JUCE 8.0.15 + CMake terhadap toolchain itu.
+#
+# PENTING — status CI:
+# Run pertama (45009798107) gagal di Configure (penyebab di atas). Jangan klaim
+# "CI Windows lolos" sebelum ada run yang benar-benar hijau di GitHub.
 #
 # Pinning: actions/checkout dipin ke commit SHA penuh (bukan tag bergerak),
 # supaya build dapat direproduksi.
@@ -25,7 +30,9 @@ on:
 
 jobs:
   build-windows:
-    runs-on: windows-latest
+    # Dipin ke windows-2022: windows-latest kini = windows-2025-vs2026 (VS 2026,
+    # tanpa VS 2022) sehingga generator "Visual Studio 17 2022" gagal (run 45009798107).
+    runs-on: windows-2022
     steps:
       # actions/checkout v4 — commit 11d5960a326750d5838078e36cf38b85af677262
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
